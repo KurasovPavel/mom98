@@ -1,4 +1,4 @@
-// $MOM — Money on Month • Windows 98 single‑file site (1:1 vibe, pink theme)
+// $MOM — Money a Month • Windows 98 single‑file site (1:1 vibe, pink theme)
 // Tech: React + Tailwind (TSX). Draggable windows, taskbar, Start button, FAQ.
 // Fixed: balanced JSX parentheses (especially around <FAQ/>), no stray parens.
 // Added: lightweight in‑UI tests (DevTests) so we can verify rendering at runtime.
@@ -7,8 +7,9 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import './index.css'
 
+
 // ===== Config =====
-const CONTRACT = "So1aNa111111111111111111111111111111111111"; // TODO paste real
+const CONTRACT = "Soon"; // TODO paste real
 const LINKS = {
   pump: "https://pump.fun/",
   chart: "https://dexscreener.com/",
@@ -25,7 +26,7 @@ export default function DAD_Win98() {
 
       {/* Windows (managed individually) */}
       <div className="fixed inset-0 pointer-events-none">
-        <Win98Window title="$MOM — Money on Month" initial={{ x: 80, y: 70 }}>
+        <Win98Window title="$MOM — Money a Month" initial={{ x: 80, y: 70 }}>
           <HeroWindow />
         </Win98Window>
 
@@ -67,21 +68,48 @@ function DesktopWallpaper() {
 }
 
 function StartTaskbar() {
-  const time = useMemo(
-    () => new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-    []
-  );
+  const [open, setOpen] = useState(false);
+  const [time, setTime] = useState(() => new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
+  useEffect(() => {
+    const id = setInterval(() => setTime(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const menuItems = [
+    "$MOM — Money a Month",
+    "Tokenomics.txt",
+    "how_to_buy.exe",
+    "faq.ini",
+    "dev_tests.log",
+  ];
+
   return (
-    <div data-testid="taskbar" className="fixed bottom-0 left-0 right-0 h-10 bg-[#c0c0c0] border-t border-black shadow-[inset_0_1px_0_#fff] flex items-stretch">
-      <button className="px-3 mx-1 my-1 bg-[#c0c0c0] border border-t-white border-l-white border-b-black border-r-black active:border-t-black active:border-l-black active:border-b-white active:border-r-white flex items-center gap-2 text-sm">
-        <span className="h-4 w-4 bg-[#d1007e]" />
-        <b>Start</b>
-      </button>
+    <div data-testid="taskbar" className="fixed bottom-0 left-0 right-0 h-10 bg-[#c0c0c0] border-t border-black shadow-[inset_0_1px_0_#fff] flex items-stretch relative">
+      {/* Start */}
+      <div className="relative">
+        <button onClick={() => setOpen(o=>!o)} className="px-3 mx-1 my-1 bg-[#c0c0c0] border border-t-white border-l-white border-b-black border-r-black active:border-t-black active:border-l-black active:border-b-white active:border-r-white flex items-center gap-2 text-sm">
+          <span className="h-4 w-4 bg-[#d1007e]" />
+          <b>Start</b>
+        </button>
+        {open && (
+          <div className="absolute bottom-10 left-1 w-56 bg-[#c0c0c0] border border-t-white border-l-white border-b-black border-r-black p-1 z-[9999]">
+            {menuItems.map((t,i)=> (
+              <div key={i} className="px-2 py-1 text-sm hover:bg-[#dcdcdc] border border-transparent hover:border-t-white hover:border-l-white hover:border-b-black hover:border-r-black">
+                {t}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Scroller */}
       <div className="flex-1 m-1 border border-t-white border-l-white border-b-black border-r-black bg-[#dcdcdc] overflow-hidden">
         <div className="h-full animate-[scroll_25s_linear_infinite] whitespace-nowrap px-2 text-xs flex items-center">
-          💵 $MOM — Money on Month • Make memes • Give a dollar • Repeat daily • On‑chain • Community • Fun
+          💵 $MOM — Money a Month • Make memes • Give a dollar • Repeat daily • On‑chain • Community • Fun
         </div>
       </div>
+
+      {/* Clock */}
       <div className="w-24 m-1 grid place-items-center text-xs border border-t-white border-l-white border-b-black border-r-black bg-[#dcdcdc]">
         {time}
       </div>
@@ -97,6 +125,9 @@ function Win98Window({ title, initial, children }: { title: string; initial: { x
   const [pos, setPos] = useState(initial);
   const [z, setZ] = useState(1);
   const dragging = useRef<{ dx: number; dy: number } | null>(null);
+  const [minimized, setMinimized] = useState(false);
+  const [maximized, setMaximized] = useState(false);
+  const [closed, setClosed] = useState(false);
 
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
@@ -112,15 +143,22 @@ function Win98Window({ title, initial, children }: { title: string; initial: { x
     };
   }, []);
 
+  if (closed) return null;
+
+  const stylePos: React.CSSProperties = maximized
+    ? { left: 8, top: 8, width: "calc(100vw - 16px)", zIndex: z }
+    : { left: pos.x, top: pos.y, zIndex: z };
+
   return (
     <div
       ref={ref}
       onMouseDown={() => setZ((n) => n + 1)}
       className="pointer-events-auto absolute"
-      style={{ left: pos.x, top: pos.y, zIndex: z }}
+      style={stylePos}
     >
       <div
         onMouseDown={(e) => {
+          if (maximized) return; // prevent drag in maximized
           const r = ref.current!.getBoundingClientRect();
           dragging.current = { dx: e.clientX - r.left, dy: e.clientY - r.top };
         }}
@@ -131,24 +169,21 @@ function Win98Window({ title, initial, children }: { title: string; initial: { x
           <span className="text-xs font-bold tracking-tight">{title}</span>
         </div>
         <div className="flex items-center gap-1">
-          {"_[]X".split("").map((c, i) => (
-            <button
-              key={i}
-              aria-label={`window-btn-${i}`}
-              className="h-5 w-5 grid place-items-center bg-[#c0c0c0] text-black border border-t-white border-l-white border-b-black border-r-black text-[10px] leading-none"
-            >
-              {c}
-            </button>
-          ))}
+          <button onClick={()=>setMinimized(true)} className="h-5 w-5 grid place-items-center bg-[#c0c0c0] text-black border border-t-white border-l-white border-b-black border-r-black text-[10px] leading-none">_</button>
+          <button onClick={()=>setMaximized(m=>!m)} className="h-5 w-5 grid place-items-center bg-[#c0c0c0] text-black border border-t-white border-l-white border-b-black border-r-black text-[10px] leading-none">[]</button>
+          <button onClick={()=>setClosed(true)} className="h-5 w-5 grid place-items-center bg-[#c0c0c0] text-black border border-t-white border-l-white border-b-black border-r-black text-[10px] leading-none">X</button>
         </div>
       </div>
-      <div className="w-[560px] max-w-[92vw] bg-[#c0c0c0] border border-t-white border-l-white border-b-black border-r-black p-3">
+      <div className={`w-[560px] max-w-[92vw] bg-[#c0c0c0] border border-t-white border-l-white border-b-black border-r-black p-3 ${minimized ? "hidden" : "block"}`}>
         <div className="min-h-[140px] bg-[#ffffff] border border-t-black border-l-black border-b-white border-r-white p-3 text-sm">
           {children}
         </div>
         <div className="mt-2 h-5 bg-[#dcdcdc] border border-t-white border-l-white border-b-black border-r-black text-[10px] px-2 grid place-items-center">
           Ready
         </div>
+        {minimized && (
+          <div className="mt-2 text-[10px] text-black/70">(Window minimized — restore via Start menu coming next)</div>
+        )}
       </div>
     </div>
   );
@@ -161,7 +196,7 @@ function HeroWindow() {
       <div className="flex items-start gap-3">
         <div className="h-12 w-12 bg-[#d1007e] border border-white" />
         <div>
-          <div className="text-xl font-black" data-testid="hero-title">Money on Month</div>
+          <div className="text-xl font-black" data-testid="hero-title">Money a Month</div>
           <div className="text-xs text-black/70">Make memes • Give a dollar • Repeat daily</div>
         </div>
       </div>
@@ -262,7 +297,7 @@ function DevTests() {
 
     // 2. Hero title text
     const hero = document.querySelector('[data-testid="hero-title"]');
-    checks.push({ name: 'hero title = "Money on Month"', pass: !!hero && hero.textContent?.includes('Money on Month') === true });
+    checks.push({ name: 'hero title = "Money a Month"', pass: !!hero && hero.textContent?.includes('Money a Month') === true });
 
     // 3. FAQ has 3 items
     const faqItems = document.querySelectorAll('[data-testid="qa-item"]').length;
