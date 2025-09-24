@@ -4,7 +4,7 @@
 // Added: lightweight in‑UI tests (DevTests) so we can verify rendering at runtime.
 // TODO: replace CONTRACT + LINKS with real ones.
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import './index.css'
 
 
