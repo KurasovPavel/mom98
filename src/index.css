@@ -1,3 +1,44 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  color: #ffffff;
+  background-color: #0b0f2c;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: #0b0f2c;
+}
+
+.starfield {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.55) 1px, transparent 1px),
+    radial-gradient(rgba(133, 98, 240, 0.5) 1px, transparent 1px);
+  background-size: 120px 120px, 180px 180px;
+  background-position: 0 0, 60px 90px;
+  filter: blur(0.3px);
+}
+
+.starfield-secondary {
+  background-size: 200px 200px, 260px 260px;
+  background-position: 40px 20px, 120px 140px;
+  opacity: 0.6;
+}
+
+@keyframes falling {
+  0% {
+    transform: translateY(-10vh) rotate(var(--rotation));
+  }
+  100% {
+    transform: translateY(110vh) rotate(calc(var(--rotation) + 360deg));
+  }
+}
